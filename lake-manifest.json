@@ -81,5 +81,4 @@
    "inputRev": "master",
    "inherited": false,
    "configFile": "lakefile.lean"}],
- "name": "zariski_spaces",
  "lakeDir": ".lake"}
