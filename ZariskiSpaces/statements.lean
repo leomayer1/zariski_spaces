@@ -40,3 +40,34 @@ lemma min_closed_eq_point (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_min : �
     there is an open set containing one but not the other
 -/
 lemma t0_of_zariski_space (x y : X) : ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) ∨ (¬x ∈ U ∧ y ∈ U) := sorry
+
+/- 3.17d
+    Show that If X is an irreducible Zariski space, then its generic point is contained in every nonempty open subset of X.
+-/
+
+/- define a variable for the generic point? -/
+
+lemma generic_point_opens (U : Opens X) (hU_nonempty : ⊥ ≠ U)
+    : ∃ g : U, closure {g} = X := sorry
+
+/- 3.17e
+    Let X be a Zariski space. Define a partial ordering where x_1 > x_0 if x_0 is in the closure of x_1.
+
+    Show that the minimal points in the ordering are the closed points, and the maximal points are the generic points of the irreducible components of X.
+
+    Show that a closed subset of X contains every specialization of any of its points.
+-/
+
+/- x specializes to y, i.e., x > y in the partial ordering for 3.17e -/
+def spec (x y : X) := y ∈ closure {x}
+
+/- hXmin: If x > y, x = y (x is minimal)-/
+lemma min_spec_closed (x : X) (hXmin : ∀ y : X, spec x y → x = y)
+    : {x} = closure {x} := sorry
+
+
+lemma max_spec_gen (x : X) (hXmax: ∀ y : X, spec y x → x = y)
+    : ∃ C : Closeds X, (IsIrreducible C.carrier) ∧ (is_generic_point x C) := by sorry
+
+lemma closed_spec_stable (C : Closeds X)
+    : ∀ c : C, (∀ x : X, spec c x → x ∈ C) by sorry
