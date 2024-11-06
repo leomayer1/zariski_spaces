@@ -71,3 +71,13 @@ lemma max_spec_gen (x : X) (hXmax: ∀ y : X, spec y x → x = y)
 
 lemma closed_spec_stable (C : Closeds X)
     : ∀ c : C, (∀ x : X, spec c x → x ∈ C) by sorry
+
+/- Defining constructible sets -/
+
+inductive is.constructible (A : Set X) :=
+
+
+/- 3.18a
+    Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
+
+lemma
