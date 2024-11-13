@@ -17,6 +17,14 @@ variable (X : Type) [TopologicalSpace X] [NoetherianSpace X]
 #check (⊤ : Closeds X)
 #check (⊥ : Closeds X)
 
+structure LocCloseds where
+carrier : Set X
+isLocClosed : IsLocallyClosed carrier
+
+#check LocCloseds
+variable (A : LocCloseds (X := X))
+#check Opens
+
 def is_zariski_space := ∀ C : Closeds X, IsIrreducible C.carrier → (∃! x : X, is_generic_point x C)
 end zarspace
 
@@ -27,6 +35,11 @@ lemma noetherian_induction (P : Closeds X → Prop) : ∀ Y : Closeds X, (∀ Z 
 
 
 variable (hX : is_zariski_space X)
+
+lemma closed_eq_closure (C: Set X) :
+    (IsClosed C → C = closure C) := sorry
+
+    -- have statement
 
 /- 3.17b
     show that any minimal nonempty closed subset of a Zariski space consists of one point
@@ -56,6 +69,8 @@ lemma generic_point_opens (U : Opens X) (hU_nonempty : ⊥ ≠ U)
     Show that the minimal points in the ordering are the closed points, and the maximal points are the generic points of the irreducible components of X.
 
     Show that a closed subset of X contains every specialization of any of its points.
+
+    Show that an open subset of X contains every generalization of any of its points.
 -/
 
 /- x specializes to y, i.e., x > y in the partial ordering for 3.17e -/
@@ -70,14 +85,38 @@ lemma max_spec_gen (x : X) (hXmax: ∀ y : X, spec y x → x = y)
     : ∃ C : Closeds X, (IsIrreducible C.carrier) ∧ (is_generic_point x C) := by sorry
 
 lemma closed_spec_stable (C : Closeds X)
-    : ∀ c : C, (∀ x : X, spec c x → x ∈ C) by sorry
+    : ∀ c x : X, (c ∈ C → spec c x) → x ∈ C := by sorry
+    -- : ∀ c : C, (∀ x : X, spec c.1 x → x ∈ C) := by sorry
+
+lemma open_gen_stable (O : Opens X)
+    : ∀ o x : X, (o ∈ C → spec x o) → x ∈ C := by sorry
 
 /- Defining constructible sets -/
 
-inductive is.constructible (A : Set X) :=
+inductive is_constructible : Set X → Prop :=
+    | op : (IsOpen A) → is_constructible A
+    -- | int (B C : Set X) : (A = B ∩ C) → (is_constructible B ∧ is_constructible C) → is_constructible A
+    | int : is_constructible B → is_constructible C → is_constructible (B ∩ C)
+    | comp : (is_constructible Aᶜ) → is_constructible A
 
+#check is_constructible.int
+
+lemma is_constructible_loc_closed (C U : Set X) (hC : IsClosed C) (hU : IsOpen U) : is_constructible (C ∩ U) := by
+    apply is_constructible.int
+    .   apply is_constructible.comp
+        apply is_constructible.op
+        simp
+        -- rw [← isClosed_compl_iff]
+        -- rw [compl_compl]
+        exact hC
+    .   apply is_constructible.op
+        exact hU
 
 /- 3.18a
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
 
-lemma
+
+
+
+lemma constructible_disjoint_union (A : Set X)
+    : is.constructible A → (∃ N, ∃ A : Fin n → LocCloseds X)
