@@ -40,7 +40,18 @@ variable (hX : is_zariski_space X)
     show that any minimal nonempty closed subset of a Zariski space consists of one point
 -/
 
-lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : IsIrreducible C.carrier := by sorry
+def is_irreducible (s: Set X) : Prop :=
+    s ≠ ⊥ ∧ (∀ u v : Closeds s, (u.carrier ∩ v.carrier ≠ ⊥) → (s ∩ (u.carrier ∩ v.carrier) ≠ ⊥))
+
+lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : IsIrreducible C.carrier := by
+    apply And.intro
+    . rw [Set.bot_eq_empty] at hC_nonempty
+      symm at hC_nonempty
+      rw [← Set.nonempty_iff_ne_empty] at hC_nonempty
+      exact hC_nonempty
+    . intro u v
+
+      sorry
 
 lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : ∃ x : X, {x} = C.carrier := by
     have hIrreducible : IsIrreducible C := irreducible_of_min C hC_nonempty hC_min
