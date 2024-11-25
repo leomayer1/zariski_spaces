@@ -6,10 +6,13 @@ import Mathlib.Tactic.Contrapose
 open TopologicalSpace
 
 section genpt
-variable {X : Type} [TopologicalSpace X] [NoetherianSpace X]
+variable {X : Type} [TopologicalSpace X]
 
 /- x is a generic point for C if the closure of {x} is C -/
 def is_generic_point (x : X) (C : Closeds X) := closure {x} = C
+
+lemma is_generic_point_singleton (x : X) : is_generic_point x (Closeds.closure {x}) := rfl
+
 end genpt
 
 section zarspace
@@ -52,6 +55,16 @@ lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_m
     . intro u v
 
       sorry
+
+lemma eq_of_generic_point (hX : is_zariski_space X) (x y : X)
+    (hClosure_eq : closure {x} = closure {y}) : x = y := by
+    apply ExistsUnique.unique (hX (Closeds.closure {x}) _)
+    . apply is_generic_point_singleton
+    . have h : Closeds.closure {x} = Closeds.closure {y} := by
+        simp [Closeds.closure, hClosure_eq]
+      rw [h]; apply is_generic_point_singleton
+    simp [Closeds.closure, isIrreducible_iff_closure]
+    apply isIrreducible_singleton
 
 lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : ∃ x : X, {x} = C.carrier := by
     have hIrreducible : IsIrreducible C := irreducible_of_min C hC_nonempty hC_min
