@@ -1,6 +1,7 @@
 import Mathlib.Topology.NoetherianSpace
 import Mathlib.Topology.Sober
 import Mathlib.Topology.Separation
+import Mathlib.Tactic.Contrapose
 
 open TopologicalSpace
 
@@ -33,20 +34,34 @@ variable {X : Type} [TopologicalSpace X] [NoetherianSpace X]
 lemma noetherian_induction (P : Closeds X → Prop) : ∀ Y : Closeds X, (∀ Z : Closeds X, Z < Y → P Z) → P Y := by
     sorry
 
-
 variable (hX : is_zariski_space X)
-
-lemma closed_eq_closure (C: Set X) :
-    (IsClosed C → C = closure C) := sorry
-
-    -- have statement
 
 /- 3.17b
     show that any minimal nonempty closed subset of a Zariski space consists of one point
 -/
-lemma min_closed_eq_point (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_min : ∀ D : Closeds X, D < C → D = ⊥)
-    : ∃ x : X, {x} = C.carrier := sorry
 
+lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : IsIrreducible C.carrier := by sorry
+
+lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : ∃ x : X, {x} = C.carrier := by
+    have hIrreducible : IsIrreducible C := irreducible_of_min C hC_nonempty hC_min
+    rw [Set.bot_eq_empty] at hC_nonempty
+    symm at hC_nonempty
+    rw [← Set.nonempty_iff_ne_empty] at hC_nonempty
+    cases' hC_nonempty with x hx
+    use x
+    -- have hPoint : ⊥ ≠ C → ∃ x : X, x ∈ C := sorry
+    have hGeneric : is_generic_point x C := sorry
+        --use minimality, since closure {x} nonempty
+    symm
+    rw [Set.eq_singleton_iff_unique_mem]
+    apply And.intro
+    . exact hx
+    . intro y hy
+      have hGenericY : is_generic_point y C := sorry
+      have genPtUnique: y=x := sorry -- apply is_zariski_space definition somehow?
+      exact genPtUnique
+
+lemma min_closed_eq_point2 (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_points : ∃ x y : X, x ≠ y ∧  x ∈ C ∧ y ∈ C) : ¬(∀ D : Closeds X, D < C → D = ⊥) := by sorry
 
 /- 3.17c
     show that a Zariski space X satisfies the axiom T₀: given any two distinct points of X,
@@ -78,7 +93,9 @@ def spec (x y : X) := y ∈ closure {x}
 
 /- hXmin: If x > y, x = y (x is minimal)-/
 lemma min_spec_closed (x : X) (hXmin : ∀ y : X, spec x y → x = y)
-    : {x} = closure {x} := sorry
+    : {x} = closure {x} := by
+
+    sorry
 
 
 lemma max_spec_gen (x : X) (hXmax: ∀ y : X, spec y x → x = y)
