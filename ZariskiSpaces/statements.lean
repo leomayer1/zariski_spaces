@@ -157,7 +157,12 @@ lemma is_constructible_loc_closed (C U : Set X) (hC : IsClosed C) (hU : IsOpen U
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
 
 
-
+variable (P : Set X → Prop)
 
 lemma constructible_disjoint_union (A : Set X)
-    : is.constructible A → (∃ N, ∃ A : Fin n → LocCloseds X)
+    : is_constructible A → P A := by
+    intro h
+    induction h
+    . sorry
+    . sorry
+    . sorry
