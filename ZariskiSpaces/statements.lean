@@ -34,8 +34,8 @@ end zarspace
 
 variable {X : Type} [TopologicalSpace X] [NoetherianSpace X]
 
-lemma noetherian_induction (P : Closeds X → Prop) : ∀ Y : Closeds X, (∀ Z : Closeds X, Z < Y → P Z) → P Y := by
-    sorry
+lemma noetherian_induction (P : Closeds X → Prop) (hP : ∀ Y : Closeds X, (∀ Z < Y, P Z) → P Y) : P ⊤ := by
+    exact WellFounded.induction NoetherianSpace.wellFounded_closeds ⊤ hP
 
 variable (hX : is_zariski_space X)
 
