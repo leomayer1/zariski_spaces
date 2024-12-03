@@ -155,16 +155,22 @@ lemma is_constructible_loc_closed (C U : Set X) (hC : IsClosed C) (hU : IsOpen U
 /- 3.18a
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
 
-def disjoint_union (t: ι → Set β) : Prop :=
-    ∀ i j : ι, i ≠ j → (t i ∩ t j = ∅)
+def finite_disjoint_union (t: ι → Set β) : Prop :=
+    Finite ι ∧ ∀ i j : ι, i ≠ j → (t i ∩ t j = ∅)
 
 def P (A: Set X) : Prop :=
-    ∃ ι : Type, ∃ t: ι → Set X, disjoint_union t → ⋃ (i : ι), t i = A
+    ∃ ι : Type, ∃ t: ι → Set X, finite_disjoint_union t → ⋃ (i : ι), t i = A
 
 lemma constructible_disjoint_union (A : Set X)
-    : is_constructible A → P A := by
-    intro h
-    induction h
-    . sorry
-    . sorry
-    . sorry
+    : is_constructible A ↔ P A := by
+    apply Iff.intro
+    .   intro h
+        induction h
+        . sorry -- assume A is open
+        . sorry -- assume B, C are constructible
+        . sorry -- assume complement of A is constructible
+    .   sorry -- prove the other implication
+
+lemma iInt_int (t: ι → Set β)(s: ι' → Set β) :
+    (⋃ (i : ι), t i) ∩ (⋃ (j : ι'), s j) = ⋃ (i : ι), ⋃ (j : ι'), t i ∩ s j
+    := by sorry
