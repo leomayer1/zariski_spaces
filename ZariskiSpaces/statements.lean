@@ -136,7 +136,6 @@ lemma open_gen_stable (O : Opens X)
 
 inductive is_constructible : Set X → Prop :=
     | op : (IsOpen A) → is_constructible A
-    -- | int (B C : Set X) : (A = B ∩ C) → (is_constructible B ∧ is_constructible C) → is_constructible A
     | int : is_constructible B → is_constructible C → is_constructible (B ∩ C)
     | comp : (is_constructible Aᶜ) → is_constructible A
 
@@ -156,8 +155,11 @@ lemma is_constructible_loc_closed (C U : Set X) (hC : IsClosed C) (hU : IsOpen U
 /- 3.18a
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
 
+def disjoint_union (t: ι → Set β) : Prop :=
+    ∀ i j : ι, i ≠ j → (t i ∩ t j = ∅)
 
-variable (P : Set X → Prop)
+def P (A: Set X) : Prop :=
+    ∃ ι : Type, ∃ t: ι → Set X, disjoint_union t → ⋃ (i : ι), t i = A
 
 lemma constructible_disjoint_union (A : Set X)
     : is_constructible A → P A := by
