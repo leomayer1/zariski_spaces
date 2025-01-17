@@ -125,8 +125,22 @@ lemma t0_of_zariski_space (x y : X) : ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) �
 
 /- define a variable for the generic point? -/
 
-lemma generic_point_opens [IrreducibleSpace X] (U : Opens X) (hU_nonempty : ⊥ ≠ U)
-    : ∃ g : U, closure {g} = X := sorry
+lemma generic_point_opens [IrreducibleSpace X] (hX : is_zariski_space X)
+    (U : Opens X) (hU_nonempty : ⊥ ≠ U): ∃ g : X, g ∈ U ∧ closure {g} = ⊤ := by
+    cases' (hX ⊤ (IrreducibleSpace.isIrreducible_univ X)).exists with g hg
+    use g
+    constructor
+    . apply by_contradiction
+      intro H
+      have hg₂ : g ∈ (U.compl : Closeds X) := H
+      let G : Closeds X := ⟨closure {g}, isClosed_closure⟩
+      have hg₃ : G ≤ U.compl := (IsClosed.mem_iff_closure_subset U.compl.2).mp hg₂
+      have hU : U.compl < ⊤ := sorry
+      have hG : G ≠ ⊤ := sorry
+      apply hG
+      have HH : G.carrier = (⊤ : Closeds X).carrier := hg
+      sorry
+    . apply hg
 
 /- 3.17e
     Let X be a Zariski space. Define a partial ordering where x_1 > x_0 if x_0 is in the closure of x_1.
