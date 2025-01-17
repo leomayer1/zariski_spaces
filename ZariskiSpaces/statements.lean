@@ -52,9 +52,27 @@ lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_m
       symm at hC_nonempty
       rw [← Set.nonempty_iff_ne_empty] at hC_nonempty
       exact hC_nonempty
-    . intro u v
-
-      sorry
+    . rw [isPreirreducible_iff_closed_union_closed]
+      intro z₁ z₂ hz₁ hz₂ hC
+      by_cases h : C.carrier ⊆ z₁
+      . left; assumption
+      . right
+        let Z₁ : Closeds X := ⟨z₁, hz₁⟩
+        let Z₂ : Closeds X := ⟨z₂, hz₂⟩
+        have hZ₁ : Z₁ ⊓ C = ⊥ := by
+            apply hC_min
+            rw [lt_iff_le_and_ne]
+            constructor
+            simp
+            intro H; apply h
+            symm at H
+            have HH := le_trans (le_of_eq H) (inf_le_left)
+            apply HH
+        have H : C ≤ Z₁ ⊔ Z₂ := hC
+        have HH := inf_le_inf_right C H
+        rw [inf_idem, inf_sup_right, hZ₁, bot_sup_eq] at HH
+        simp at HH
+        apply HH
 
 lemma eq_of_generic_point (hX : is_zariski_space X) (x y : X)
     (hClosure_eq : closure {x} = closure {y}) : x = y := by
@@ -99,7 +117,7 @@ lemma t0_of_zariski_space (x y : X) : ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) �
 
 /- define a variable for the generic point? -/
 
-lemma generic_point_opens (U : Opens X) (hU_nonempty : ⊥ ≠ U)
+lemma generic_point_opens [IrreducibleSpace X] (U : Opens X) (hU_nonempty : ⊥ ≠ U)
     : ∃ g : U, closure {g} = X := sorry
 
 /- 3.17e
