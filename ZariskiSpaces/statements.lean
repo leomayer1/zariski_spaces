@@ -135,11 +135,28 @@ lemma generic_point_opens [IrreducibleSpace X] (hX : is_zariski_space X)
       have hg₂ : g ∈ (U.compl : Closeds X) := H
       let G : Closeds X := ⟨closure {g}, isClosed_closure⟩
       have hg₃ : G ≤ U.compl := (IsClosed.mem_iff_closure_subset U.compl.2).mp hg₂
-      have hU : U.compl < ⊤ := sorry
-      have hG : G ≠ ⊤ := sorry
+      have hU : U.compl < ⊤ := by
+        rw [lt_top_iff_ne_top]
+        intro hU
+        apply hU_nonempty
+        apply Eq.symm
+        have hUU : U.carrierᶜ = ⊤ := by
+            ext
+            show _ ∈ U.compl ↔ _ ∈ (⊤ : Closeds X)
+            rw [hU]
+        rw [compl_eq_top] at hUU
+        ext
+        show _ ∈ U.carrier ↔ _
+        rw [hUU]
+        rfl
+      have hG : G ≠ ⊤ := by
+        rw [←lt_top_iff_ne_top]
+        apply lt_of_le_of_lt hg₃ hU
       apply hG
       have HH : G.carrier = (⊤ : Closeds X).carrier := hg
-      sorry
+      ext
+      show _ ∈ G.carrier ↔ _ ∈ (⊤ : Closeds X).carrier
+      rw [HH]
     . apply hg
 
 /- 3.17e
