@@ -89,19 +89,27 @@ lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty
     rw [Set.bot_eq_empty] at hC_nonempty
     symm at hC_nonempty
     rw [← Set.nonempty_iff_ne_empty] at hC_nonempty
+    have hGeneric {x : X} (hx : x ∈ C) : is_generic_point x C := by
+        let D : Closeds X := ⟨closure {x}, isClosed_closure⟩
+        have H : D ≤ C := (IsClosed.mem_iff_closure_subset C.2).mp hx
+        rw [le_iff_lt_or_eq] at H
+        cases' H with H H
+        . have H : D = ⊥ := hC_min _ (by assumption)
+          exfalso
+          have HH : x ∈ D := subset_closure (Set.mem_singleton _)
+          rw [H] at HH
+          apply HH
+        . rw [←H]
+          rfl
     cases' hC_nonempty with x hx
     use x
-    -- have hPoint : ⊥ ≠ C → ∃ x : X, x ∈ C := sorry
-    have hGeneric : is_generic_point x C := sorry
-        --use minimality, since closure {x} nonempty
     symm
     rw [Set.eq_singleton_iff_unique_mem]
     apply And.intro
     . exact hx
     . intro y hy
-      have hGenericY : is_generic_point y C := sorry
-      have genPtUnique: y=x := sorry -- apply is_zariski_space definition somehow?
-      exact genPtUnique
+      apply eq_of_generic_point hX
+      rw [hGeneric hy, hGeneric hx]
 
 lemma min_closed_eq_point2 (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_points : ∃ x y : X, x ≠ y ∧  x ∈ C ∧ y ∈ C) : ¬(∀ D : Closeds X, D < C → D = ⊥) := by sorry
 
