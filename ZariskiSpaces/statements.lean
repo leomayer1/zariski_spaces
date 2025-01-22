@@ -117,7 +117,34 @@ lemma min_closed_eq_point2 (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_points 
     show that a Zariski space X satisfies the axiom T₀: given any two distinct points of X,
     there is an open set containing one but not the other
 -/
-lemma t0_of_zariski_space (x y : X) : ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) ∨ (¬x ∈ U ∧ y ∈ U) := sorry
+lemma t0_of_zariski_space (x y : X) (h_ne : x ≠ y) (hX : is_zariski_space X) :
+    ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) ∨ (¬x ∈ U ∧ y ∈ U) := by
+    let C : Closeds X := ⟨closure {x}, isClosed_closure⟩
+    let D : Closeds X := ⟨closure {y}, isClosed_closure⟩
+    have H : C ≠ D := by
+        intro h; apply h_ne
+        apply eq_of_generic_point hX x y
+        show C.carrier = D.carrier
+        rw [h]
+    have H₂ : x ∉ D ∨ y ∉ C := by
+        apply by_contradiction
+        intro h; push_neg at h; apply H
+        apply le_antisymm
+        . apply (IsClosed.mem_iff_closure_subset D.2).mp h.1
+        . apply (IsClosed.mem_iff_closure_subset C.2).mp h.2
+    cases H₂ with
+    | inl H₂ =>
+        use D.compl; left; constructor
+        . apply H₂
+        . show y ∉ (D.carrier)ᶜ
+          rw [Set.mem_compl_iff, not_not]
+          apply subset_closure (Set.mem_singleton _)
+    | inr H₂ =>
+        use C.compl; right; constructor
+        . show x ∉ (C.carrier)ᶜ
+          rw [Set.mem_compl_iff, not_not]
+          apply subset_closure (Set.mem_singleton _)
+        . apply H₂
 
 /- 3.17d
     Show that If X is an irreducible Zariski space, then its generic point is contained in every nonempty open subset of X.
