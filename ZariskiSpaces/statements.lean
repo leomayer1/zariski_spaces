@@ -25,6 +25,23 @@ structure LocCloseds where
 carrier : Set X
 isLocClosed : IsLocallyClosed carrier
 
+instance : SetLike (LocCloseds X) X where
+  coe := LocCloseds.carrier
+  coe_injective' s t h := by cases s; cases t; congr
+
+instance : Lattice (LocCloseds X) where
+  sup A B := ⟨A.carrier ∪ B.carrier, by
+    sorry⟩
+  le_sup_left := fun a b => Set.subset_union_left
+  le_sup_right := fun a b => Set.subset_union_right
+  sup_le := fun a b c => Set.union_subset
+  inf A B := ⟨A.carrier ∩ B.carrier, by
+    sorry⟩
+  inf_le_left := fun a b => Set.inter_subset_left
+  inf_le_right := fun a b => Set.inter_subset_right
+  le_inf := fun a b c => Set.subset_inter
+
+
 #check LocCloseds
 variable (A : LocCloseds (X := X))
 #check Opens
@@ -253,7 +270,9 @@ lemma constructible_disjoint_union (A : Set X)
         . sorry -- assume A is open
         . sorry -- assume B, C are constructible
         . sorry -- assume complement of A is constructible
-    .   sorry -- prove the other implication
+    .   intro hA -- prove the other implication
+        rcases hA with ⟨ι, t, hA⟩
+        sorry
 
 lemma iInt_int (t: ι → Set β)(s: ι' → Set β) :
     (⋃ (i : ι), t i) ∩ (⋃ (j : ι'), s j) = ⋃ (i : ι), ⋃ (j : ι'), t i ∩ s j
