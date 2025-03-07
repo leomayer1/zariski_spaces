@@ -16,28 +16,42 @@ lemma is_generic_point_singleton (x : X) : is_generic_point x (Closeds.closure {
 end genpt
 
 section zarspace
+
 variable (X : Type) [TopologicalSpace X] [NoetherianSpace X]
 
 #check (⊤ : Closeds X)
 #check (⊥ : Closeds X)
 
-structure LocCloseds where
-carrier : Set X
-isLocClosed : IsLocallyClosed carrier
+-- structure LocCloseds where
+-- carrier : Set X
+-- isLocClosed : IsLocallyClosed carrier
 
-#check LocCloseds
-variable (A : LocCloseds (X := X))
-#check Opens
+-- #check LocCloseds
+-- variable (A : LocCloseds (X := X))
+-- #check Opens
 
-def is_zariski_space := ∀ C : Closeds X, IsIrreducible C.carrier → (∃! x : X, is_generic_point x C)
+class ZariskiSpace : Prop where
+    /-- Irreducible closed sets have generic point -/
+    irr_closed_gen : ∀ C : Closeds X, IsIrreducible C.carrier → (∃! x : X, is_generic_point x C)
+
 end zarspace
 
-variable {X : Type} [TopologicalSpace X] [NoetherianSpace X]
+section noetherian_induction
+
+variable (X : Type) [TopologicalSpace X] [NoetherianSpace X]
 
 lemma noetherian_induction (P : Closeds X → Prop) (hP : ∀ Y : Closeds X, (∀ Z < Y, P Z) → P Y) : P ⊤ := by
     exact WellFounded.induction NoetherianSpace.wellFounded_closeds ⊤ hP
 
-variable (hX : is_zariski_space X)
+end noetherian_induction
+
+-- variable (hX : is_zariski_space X)
+
+section threepoint17
+
+open ZariskiSpace
+
+variable (X : Type) [TopologicalSpace X] [ZariskiSpace X]
 
 /- 3.17b
     show that any minimal nonempty closed subset of a Zariski space consists of one point
@@ -74,9 +88,9 @@ lemma irreducible_of_min (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_m
         simp at HH
         apply HH
 
-lemma eq_of_generic_point (hX : is_zariski_space X) (x y : X)
+lemma eq_of_generic_point (x y : X)
     (hClosure_eq : closure {x} = closure {y}) : x = y := by
-    apply ExistsUnique.unique (hX (Closeds.closure {x}) _)
+    apply ExistsUnique.unique (irr_closed_gen (Closeds.closure {x}) _)
     . apply is_generic_point_singleton
     . have h : Closeds.closure {x} = Closeds.closure {y} := by
         simp [Closeds.closure, hClosure_eq]
@@ -84,8 +98,8 @@ lemma eq_of_generic_point (hX : is_zariski_space X) (x y : X)
     simp [Closeds.closure, isIrreducible_iff_closure]
     apply isIrreducible_singleton
 
-lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : ∃ x : X, {x} = C.carrier := by
-    have hIrreducible : IsIrreducible C := irreducible_of_min C hC_nonempty hC_min
+-- minimal -> consists of one point
+lemma min_closed_eq_point (C : Closeds X) (hC_nonempty : ⊥ ≠ C.carrier) (hC_min : ∀ D : Closeds X, D < C → D = ⊥) : ∃ x : X, {x} = C.carrier := by
     rw [Set.bot_eq_empty] at hC_nonempty
     symm at hC_nonempty
     rw [← Set.nonempty_iff_ne_empty] at hC_nonempty
@@ -108,30 +122,31 @@ lemma min_closed_eq_point (hX : is_zariski_space X) (C : Closeds X) (hC_nonempty
     apply And.intro
     . exact hx
     . intro y hy
-      apply eq_of_generic_point hX
+      apply eq_of_generic_point
       rw [hGeneric hy, hGeneric hx]
 
+-- consists of two points -> not minimal
 lemma min_closed_eq_point2 (C : Closeds X) (hC_nonempty : ⊥ ≠ C) (hC_points : ∃ x y : X, x ≠ y ∧  x ∈ C ∧ y ∈ C) : ¬(∀ D : Closeds X, D < C → D = ⊥) := by sorry
 
 /- 3.17c
     show that a Zariski space X satisfies the axiom T₀: given any two distinct points of X,
     there is an open set containing one but not the other
 -/
-lemma t0_of_zariski_space (x y : X) (h_ne : x ≠ y) (hX : is_zariski_space X) :
+lemma t0_of_zariski_space (x y : X) (h_ne : x ≠ y) :
     ∃ U : Opens X, (x ∈ U ∧ ¬ y∈ U) ∨ (¬x ∈ U ∧ y ∈ U) := by
-    let C : Closeds X := ⟨closure {x}, isClosed_closure⟩
-    let D : Closeds X := ⟨closure {y}, isClosed_closure⟩
-    have H : C ≠ D := by
-        intro h; apply h_ne
-        apply eq_of_generic_point hX x y
+    let C : Closeds X := ⟨closure {x}, isClosed_closure⟩ --let C be closure {x}
+    let D : Closeds X := ⟨closure {y}, isClosed_closure⟩ --let D be closure {y}
+    have H : C ≠ D := by --first note that C ≠ D
+        intro h; apply h_ne --if it was
+        apply eq_of_generic_point --then x = y, which is a contradiction
         show C.carrier = D.carrier
         rw [h]
-    have H₂ : x ∉ D ∨ y ∉ C := by
+    have H₂ : x ∉ D ∨ y ∉ C := by --claim that...
         apply by_contradiction
-        intro h; push_neg at h; apply H
-        apply le_antisymm
-        . apply (IsClosed.mem_iff_closure_subset D.2).mp h.1
-        . apply (IsClosed.mem_iff_closure_subset C.2).mp h.2
+        intro h; push_neg at h; apply H --otherwise, x ∈ D and y ∈ C
+        apply le_antisymm --but then D = C, which is a contradiction
+        . apply (IsClosed.mem_iff_closure_subset D.closed).mp h.1
+        . apply (IsClosed.mem_iff_closure_subset C.closed).mp h.2
     cases H₂ with
     | inl H₂ =>
         use D.compl; left; constructor
@@ -152,9 +167,9 @@ lemma t0_of_zariski_space (x y : X) (h_ne : x ≠ y) (hX : is_zariski_space X) :
 
 /- define a variable for the generic point? -/
 
-lemma generic_point_opens [IrreducibleSpace X] (hX : is_zariski_space X)
+lemma generic_point_opens [IrreducibleSpace X]
     (U : Opens X) (hU_nonempty : ⊥ ≠ U): ∃ g : X, g ∈ U ∧ closure {g} = ⊤ := by
-    cases' (hX ⊤ (IrreducibleSpace.isIrreducible_univ X)).exists with g hg
+    cases' (irr_closed_gen ⊤ (IrreducibleSpace.isIrreducible_univ X)).exists with g hg
     use g
     constructor
     . apply by_contradiction
@@ -216,6 +231,12 @@ lemma closed_spec_stable (C : Closeds X)
 lemma open_gen_stable (O : Opens X)
     : ∀ o x : X, (o ∈ C → spec x o) → x ∈ C := by sorry
 
+end threepoint17
+
+section threepoint18
+
+variable (X : Type) [TopologicalSpace X]
+
 /- Defining constructible sets -/
 
 inductive is_constructible : Set X → Prop :=
@@ -225,16 +246,14 @@ inductive is_constructible : Set X → Prop :=
 
 #check is_constructible.int
 
-lemma is_constructible_loc_closed (C U : Set X) (hC : IsClosed C) (hU : IsOpen U) : is_constructible (C ∩ U) := by
+lemma is_constructible_loc_closed (C: Closeds X) (U: Opens X) : is_constructible (C.carrier ∩ U.carrier) := by
     apply is_constructible.int
     .   apply is_constructible.comp
         apply is_constructible.op
         simp
-        -- rw [← isClosed_compl_iff]
-        -- rw [compl_compl]
-        exact hC
+        exact C.closed'
     .   apply is_constructible.op
-        exact hU
+        exact U.is_open'
 
 /- 3.18a
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
@@ -258,3 +277,10 @@ lemma constructible_disjoint_union (A : Set X)
 lemma iInt_int (t: ι → Set β)(s: ι' → Set β) :
     (⋃ (i : ι), t i) ∩ (⋃ (j : ι'), s j) = ⋃ (i : ι), ⋃ (j : ι'), t i ∩ s j
     := by sorry
+
+end threepoint18
+
+-- organize proofs into sections
+-- rewrite/shorten proofs
+-- spec problems
+-- constructible dju
