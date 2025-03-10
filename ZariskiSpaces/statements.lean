@@ -30,17 +30,7 @@ instance : SetLike (LocCloseds X) X where
   coe := LocCloseds.carrier
   coe_injective' s t h := by cases s; cases t; congr
 
-instance : Lattice (LocCloseds X) where
-  sup A B := ⟨A.carrier ∪ B.carrier, by
-    sorry⟩
-  le_sup_left := fun a b => Set.subset_union_left
-  le_sup_right := fun a b => Set.subset_union_right
-  sup_le := fun a b c => Set.union_subset
-  inf A B := ⟨A.carrier ∩ B.carrier, by
-    sorry⟩
-  inf_le_left := fun a b => Set.inter_subset_left
-  inf_le_right := fun a b => Set.inter_subset_right
-  le_inf := fun a b c => Set.subset_inter
+
 
 
 -- #check LocCloseds
@@ -252,7 +242,7 @@ end threepoint17
 
 section threepoint18
 
-variable (X : Type) [TopologicalSpace X]
+variable {X : Type} [TopologicalSpace X]
 
 /- Defining constructible sets -/
 
@@ -261,25 +251,115 @@ inductive is_constructible : Set X → Prop :=
     | int : is_constructible B → is_constructible C → is_constructible (B ∩ C)
     | comp : (is_constructible Aᶜ) → is_constructible A
 
+lemma is_constructible_op {A : Set X} (hA : IsOpen A) : is_constructible A := is_constructible.op hA
+lemma is_constructible_cl {A : Set X} (hA : IsClosed A) : is_constructible A := by
+    apply is_constructible.comp
+    apply is_constructible.op
+    rwa [isOpen_compl_iff]
+lemma is_constructible_int {A B : Set X} (hA : is_constructible A) (hB : is_constructible B)
+    : is_constructible (A ∩ B) := is_constructible.int hA hB
+lemma is_constructible_un {A B : Set X} (hA : is_constructible A) (hB : is_constructible B)
+    : is_constructible (A ∪ B) := by
+        apply is_constructible.comp
+        rw [Set.compl_union]
+        apply is_constructible.int
+        . apply is_constructible.comp
+          rw [compl_compl]
+          exact hA
+        . apply is_constructible.comp
+          rw [compl_compl]
+          exact hB
+
 #check is_constructible.int
 
-lemma is_constructible_loc_closed (C: Closeds X) (U: Opens X) : is_constructible (C.carrier ∩ U.carrier) := by
+lemma is_constructible_loc_closed (U: Opens X) (C: Closeds X) : is_constructible (U.carrier ∩ C.carrier) := by
     apply is_constructible.int
+    .   apply is_constructible.op
+        exact U.is_open'
     .   apply is_constructible.comp
         apply is_constructible.op
         simp
         exact C.closed'
-    .   apply is_constructible.op
-        exact U.is_open'
+
+lemma is_constructible_loc_closed' (A: LocCloseds X) : is_constructible (A : Set X) := by
+    let ⟨A', U, C, hU, hC, hA'⟩ := A
+    show is_constructible A'
+    rw [hA']
+    apply is_constructible_loc_closed ⟨U, hU⟩ ⟨C, hC⟩
 
 /- 3.18a
     Show that a subset of X is constructible iff it can be written as a finite disjoint union of locally closed subsets -/
 
-def finite_disjoint_union (t: ι → Set β) : Prop :=
-    Finite ι ∧ ∀ i j : ι, i ≠ j → (t i ∩ t j = ∅)
+def finite_disjoint_union (t: ι → LocCloseds X) : Prop :=
+    Finite ι ∧ ∀ i j : ι, i ≠ j → ((t i).carrier ∩ t j = ∅)
 
 def P (A: Set X) : Prop :=
-    ∃ ι : Type, ∃ t: ι → Set X, finite_disjoint_union t → ⋃ (i : ι), t i = A
+    ∃ ι : Type, ∃ t: ι → LocCloseds X, finite_disjoint_union t → ⋃ (i : ι), t i = A
+
+lemma constructible_of_finite_union' {n : ℕ} (t : Fin n → LocCloseds X) :
+    is_constructible (⋃ (i : Fin n), t i : Set X) := by
+    induction n with
+    | zero =>
+        apply is_constructible.op
+        simp
+    | succ n ih =>
+        let t' : Fin n → LocCloseds X := λ ⟨a, ha⟩ => t ⟨a, Nat.lt_succ_of_lt ha⟩
+        have H : (⋃ (i : Fin (n+1)), t i : Set X) =
+            (⋃ (i : Fin n), t' i : Set X) ∪ (t ⟨n, Nat.lt_succ_self _⟩) := by
+            . ext x
+              constructor
+              . intro hx
+                rw [Set.mem_iUnion] at hx
+                rcases hx with ⟨⟨i, hi'⟩, hi⟩
+                by_cases (i < n)
+                . left
+                  rw [Set.mem_iUnion]
+                  use ⟨i, by assumption⟩
+                . have hin : i = n := by
+                    apply Nat.le_antisymm
+                    . apply Nat.le_of_lt_succ
+                      assumption
+                    . rw [←Nat.not_lt]
+                      assumption
+                  right
+                  convert hi
+                  symm
+                  assumption
+              . intro hx
+                rw [Set.mem_iUnion]
+                rcases hx with hx | hx
+                . rw [Set.mem_iUnion] at hx
+                  rcases hx with ⟨⟨i, hi'⟩, hi⟩
+                  use i
+                  convert hi
+                  simp
+                  apply Nat.lt_succ_of_lt
+                  assumption
+                . use n
+                  convert hx
+                  simp
+        rw [H]
+        apply is_constructible_un
+        . apply ih
+        . apply is_constructible_loc_closed'
+
+lemma constructible_of_finite_union (t : ι → LocCloseds X) (hι : Finite ι) :
+    is_constructible (⋃ (i : ι), t i : Set X) := by
+    rcases hι with ⟨α, β, h₁, h₂⟩
+    let t' : Fin _ → LocCloseds X := λ i => t (β i)
+    convert constructible_of_finite_union' t'
+    ext
+    constructor
+    . intro hx
+      rw [Set.mem_iUnion] at *
+      rcases hx with ⟨i, hi⟩
+      use α i
+      convert hi
+      apply h₁
+    . intro hx
+      rw [Set.mem_iUnion] at *
+      rcases hx with ⟨i, hi⟩
+      use β i
 
 lemma constructible_disjoint_union (A : Set X)
     : is_constructible A ↔ P A := by
