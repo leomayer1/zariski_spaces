@@ -218,25 +218,39 @@ lemma generic_point_opens [IrreducibleSpace X]
     Show that an open subset of X contains every generalization of any of its points.
 -/
 
-/- x specializes to y, i.e., x > y in the partial ordering for 3.17e -/
+/- x specializes to y, i.e., y is in the closure of x, x > y in the partial ordering for 3.17e -/
+variable {X : Type} [TopologicalSpace X]
 def spec (x y : X) := y ∈ closure {x}
+
 
 /- hXmin: If x > y, x = y (x is minimal)-/
 lemma min_spec_closed (x : X) (hXmin : ∀ y : X, spec x y → x = y)
     : {x} = closure {x} := by
-
+    apply Set.Subset.antisymm
+    apply subset_closure
     sorry
-
 
 lemma max_spec_gen (x : X) (hXmax: ∀ y : X, spec y x → x = y)
     : ∃ C : Closeds X, (IsIrreducible C.carrier) ∧ (is_generic_point x C) := by sorry
 
-lemma closed_spec_stable (C : Closeds X)
-    : ∀ c x : X, (c ∈ C → spec c x) → x ∈ C := by sorry
-    -- : ∀ c : C, (∀ x : X, spec c.1 x → x ∈ C) := by sorry
 
-lemma open_gen_stable (O : Opens X)
-    : ∀ o x : X, (o ∈ C → spec x o) → x ∈ C := by sorry
+--def spec (x y : X) := y ∈ closure {x}
+lemma closed_spec_stable (C : Closeds X) (c : X) (hC: c ∈ C)
+    : ∀ x : X, (spec c x) → x ∈ C := by
+    intro x hX
+    rw [spec] at hX
+    have hC2 : c ∈ C.carrier := hC
+    rw [IsClosed.mem_iff_closure_subset] at hC2
+    have hX2 : x ∈ C.carrier := hC2 hX
+    exact hX2
+    exact C.closed'
+
+-- if o is a point in an open set and o is in the closure of x, x is in o
+lemma open_gen_stable (O : Opens X) (o : X) (hO: o ∈ O)
+    : ∀ x : X, (spec x o) → x ∈ O := by
+    intro x hX
+
+    sorry
 
 end threepoint17
 
